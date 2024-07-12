@@ -10,7 +10,7 @@
   },
   "scripts": {
     "account": "yarn workspace @se-2/hardhat account",
-    "chain": "yarn workspace @se-2/hardhat chain",
+    "chain": "anvil",
     "fork": "yarn workspace @se-2/hardhat fork",
     "deploy:hardhat": "yarn workspace @se-2/hardhat deploy",
     "verify": "yarn workspace @se-2/hardhat verify",
