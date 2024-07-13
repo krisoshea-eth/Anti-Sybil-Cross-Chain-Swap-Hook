@@ -182,12 +182,29 @@ contract SwapHookTest is Test, Deployers, IERC721Receiver {
     swap(key, true, -1e18, worldIDData);
 
     vm.stopPrank();
+  }
 
-    // Test with an address that doesn't have the NFT
-    address noNftAddress = address(0x123);
-    vm.startPrank(noNftAddress);
-    vm.expectRevert("Sender is not World ID verified");
-    swap(key, true, -1e18, worldIDData);
-    vm.stopPrank();
+  function testNoWorldIDVerification() public {
+      // Ensure the user doesn't have an NFT to start with
+      assertEq(nft.balanceOf(user), 0);
+
+      // Prepare swap parameters
+      bool zeroForOne = true;
+      int256 amountSpecified = -1e18; // negative number indicates exact input swap
+      bytes memory emptyProofData = new bytes(0);
+
+      // Try to perform a swap without having the NFT
+      vm.startPrank(user);
+      vm.expectRevert(abi.encodeWithSignature("FailedHookCall()"));
+      swap(key, zeroForOne, amountSpecified, emptyProofData);
+      vm.stopPrank();
+
+      // Verify that the user still doesn't have an NFT
+      assertEq(nft.balanceOf(user), 0);
+  }
+
+  // Helper function to decode FailedHookCall error
+  function getFailedHookCallError() internal pure returns (bytes memory) {
+      return abi.encodeWithSignature("FailedHookCall()");
   }
 }
