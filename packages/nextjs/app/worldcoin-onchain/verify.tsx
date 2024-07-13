@@ -51,8 +51,8 @@ const VerifyOnChain = () => {
       {connectedAddress ? (
         <>
           <IDKitWidget
-            app_id="app_staging_e5c0f85626a74e386e1b703b5c895f1f" // must be an app set to on-chain in Developer Portal
-            action="test-action"
+            app_id="app_staging_911f3b232bfb4259958b766f6a2baffd" // must be an app set to on-chain in Developer Portal
+            action="verifyswap"
             signal={connectedAddress} // proof will only verify if the signal is unchanged, preventing tampering
             onSuccess={submitTx} // use onSuccess to call your smart contract
             verification_level={VerificationLevel.Orb} // use default verification_level, as device credentials are not supported on-chain

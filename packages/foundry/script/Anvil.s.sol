@@ -5,6 +5,8 @@ import "forge-std/Script.sol";
 import {IHooks} from "v4-core/src/interfaces/IHooks.sol";
 import {Hooks} from "v4-core/src/libraries/Hooks.sol";
 import {PoolManager} from "v4-core/src/PoolManager.sol";
+import { WorldcoinVerifier } from "../contracts/WorldcoinVerifier.sol";
+import { WorldIDVerifiedNFT } from "../contracts/WorldIDVerifiedNFT.sol";
 import {IPoolManager} from "v4-core/src/interfaces/IPoolManager.sol";
 import {PoolModifyLiquidityTest} from "v4-core/src/test/PoolModifyLiquidityTest.sol";
 import {PoolSwapTest} from "v4-core/src/test/PoolSwapTest.sol";
@@ -27,6 +29,7 @@ contract CounterScript is Script {
     function run() public {
         vm.broadcast();
         IPoolManager manager = deployPoolManager();
+        WorldIDVerifiedNFT nft = new WorldIDVerifiedNFT();
 
         // hook contracts must have specific flags encoded in the address
         uint160 permissions = uint160(
@@ -42,7 +45,7 @@ contract CounterScript is Script {
         // Deploy the hook using CREATE2 //
         // ----------------------------- //
         vm.broadcast();
-        SwapHook swapHook = new SwapHook{salt: salt}(manager);
+        SwapHook swapHook = new SwapHook{salt: salt}(manager, nft);
         require(address(swapHook) == hookAddress, "CounterScript: hook address mismatch");
 
         // Additional helpers for interacting with the pool

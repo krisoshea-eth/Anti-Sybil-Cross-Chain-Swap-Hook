@@ -4,6 +4,7 @@ import React, { useCallback, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import KYCCheck from "./KycCheck";
 import { DynamicWidget } from "@dynamic-labs/sdk-react-core";
 import { Bars3Icon, BugAntIcon, WalletIcon } from "@heroicons/react/24/outline";
 import { FaucetButton } from "~~/components/scaffold-eth";
@@ -107,7 +108,8 @@ export const Header = () => {
           <HeaderMenuLinks />
         </ul>
       </div>
-      <div className="navbar-end flex-grow mr-4">
+      <div className="navbar-end flex-grow mr-4 gap-2">
+        <KYCCheck />
         <DynamicWidget />
         <FaucetButton />
       </div>

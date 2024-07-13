@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./ByteHasher.sol";
 import "./IWorldID.sol";
+import "./WorldIDVerifiedNFT.sol";
 
 contract WorldcoinVerifier {
     using ByteHasher for bytes;
@@ -18,6 +19,7 @@ contract WorldcoinVerifier {
 
     /// @dev The World ID group ID (1 for Orb-verified)
     uint256 internal immutable groupId = 1;
+    WorldIDVerifiedNFT public immutable verifiedNFT;
 
     /// @dev Whether a nullifier hash has been used already. Used to guarantee an action is only performed once by a single person
     mapping(uint256 => bool) internal nullifierHashes;
@@ -28,9 +30,11 @@ contract WorldcoinVerifier {
     constructor(
         IWorldID _worldId,
         string memory _appId,
-        string memory _action
+        string memory _action,
+        WorldIDVerifiedNFT _verifiedNFT
     ) {
         worldId = _worldId;
+        verifiedNFT = _verifiedNFT;
         externalNullifierHash = abi
             .encodePacked(abi.encodePacked(_appId).hashToField(), _action)
             .hashToField();
@@ -46,6 +50,7 @@ contract WorldcoinVerifier {
         uint256 nullifierHash,
         uint256[8] calldata proof
     ) public {
+        require(signal != address(0), "Invalid signal");
         emit Log("Entering verifyAndExecute");
         emit LogAddress("Signal", signal);
         emit LogUint256("Root", root);
@@ -64,6 +69,7 @@ contract WorldcoinVerifier {
         emit Log("Calling worldId.verifyProof");
 
         // We now verify the provided proof is valid and the user is verified by World ID
+
         try
             worldId.verifyProof(
                 root,
@@ -76,6 +82,7 @@ contract WorldcoinVerifier {
         {
             emit Log("Proof verified");
         } catch (bytes memory reason) {
+            // this is where it is failing
             emit LogBytes("Proof verification failed", reason);
             revert("Proof verification failed");
         }
@@ -84,6 +91,8 @@ contract WorldcoinVerifier {
         nullifierHashes[nullifierHash] = true;
 
         emit Log("Nullifier hash recorded");
+
+        verifiedNFT.mint(signal);
 
         // Finally, execute your logic here, knowing the user is verified
         // Example: mint a token, grant access, etc.
