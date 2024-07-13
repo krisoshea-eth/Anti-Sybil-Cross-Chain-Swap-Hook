@@ -3,6 +3,10 @@ pragma solidity ^0.8.19;
 
 import "../contracts/YourContract.sol";
 import "../contracts/SwapHook.sol";
+import "forge-std/Script.sol";
+import "../contracts/WorldcoinVerifier.sol";
+import "../contracts/ByteHasher.sol";
+import "../contracts/IWorldID.sol";
 import "./DeployHelpers.s.sol";
 
 contract DeployScript is ScaffoldETHDeploy {
@@ -16,6 +20,23 @@ contract DeployScript is ScaffoldETHDeploy {
       );
     }
     vm.startBroadcast(deployerPrivateKey);
+
+    address worldIdRouterAddress = 0x469449f251692E0779667583026b5A1E99512157; // Replace with actual address
+    string memory appId = "app_staging_190d34fc743cee705b492dc47e97a5aa"; // Replace with your actual app ID
+    string memory actionId = "verify-human"; // Replace with your actual action ID
+
+    WorldcoinVerifier verifier = new WorldcoinVerifier(
+        IWorldID(worldIdRouterAddress),
+        appId,
+        actionId
+    );
+
+    console.logString(
+        string.concat(
+            "WorldcoinVerifier deployed at: ",
+            vm.toString(address(verifier))
+        )
+    );
 
     YourContract yourContract = new YourContract(vm.addr(deployerPrivateKey));
     console.logString(
