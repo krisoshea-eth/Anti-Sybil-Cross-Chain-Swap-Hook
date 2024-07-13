@@ -13,6 +13,7 @@ import {
   BeforeSwapDelta,
   BeforeSwapDeltaLibrary
 } from "v4-core/src/types/BeforeSwapDelta.sol";
+import { OApp } from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/OApp.sol";
 
 contract SwapHook is BaseHook {
   using PoolIdLibrary for PoolKey;

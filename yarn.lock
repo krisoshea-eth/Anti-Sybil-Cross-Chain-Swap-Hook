@@ -1706,6 +1706,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@layerzerolabs/lz-evm-oapp-v2@npm:^2.3.29":
+  version: 2.3.29
+  resolution: "@layerzerolabs/lz-evm-oapp-v2@npm:2.3.29"
+  peerDependencies:
+    "@layerzerolabs/lz-evm-messagelib-v2": ^2.3.29
+    "@layerzerolabs/lz-evm-protocol-v2": ^2.3.29
+    "@layerzerolabs/lz-evm-v1-0.7": ^2.3.29
+    "@openzeppelin/contracts": ^4.8.1 || ^5.0.0
+    "@openzeppelin/contracts-upgradeable": ^4.8.1 || ^5.0.0
+    hardhat-deploy: ^0.11.44
+    solidity-bytes-utils: ^0.8.0
+  checksum: bda6d4f901476b8c041523da126c1245ba652e719ebe03bf94cda497f10eba6d129cd46e43e2e7e32884ec04ee726b630de5ac956d5d88f33111ce2ae9d074b7
+  languageName: node
+  linkType: hard
+
 "@lit-labs/ssr-dom-shim@npm:^1.0.0, @lit-labs/ssr-dom-shim@npm:^1.1.0":
   version: 1.2.0
   resolution: "@lit-labs/ssr-dom-shim@npm:1.2.0"
@@ -3310,6 +3325,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@se-2/foundry@workspace:packages/foundry"
   dependencies:
+    "@layerzerolabs/lz-evm-oapp-v2": ^2.3.29
     "@types/prettier": 2
     "@types/qrcode": 1
     dotenv: ~16.3.1

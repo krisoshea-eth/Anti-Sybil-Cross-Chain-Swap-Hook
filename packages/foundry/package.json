@@ -17,6 +17,7 @@
         "verify": "forge build --build-info --build-info-path out/build-info/ && forge script script/VerifyAll.s.sol --ffi --rpc-url ${1:-default_network}"
     },
     "dependencies": {
+        "@layerzerolabs/lz-evm-oapp-v2": "^2.3.29",
         "dotenv": "~16.3.1",
         "envfile": "~6.18.0",
         "ethers": "~5.7.1",
