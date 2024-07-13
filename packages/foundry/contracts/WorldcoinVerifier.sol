@@ -69,6 +69,7 @@ contract WorldcoinVerifier {
         emit Log("Calling worldId.verifyProof");
 
         // We now verify the provided proof is valid and the user is verified by World ID
+
         try
             worldId.verifyProof(
                 root,
@@ -81,6 +82,7 @@ contract WorldcoinVerifier {
         {
             emit Log("Proof verified");
         } catch (bytes memory reason) {
+            // this is where it is failing
             emit LogBytes("Proof verification failed", reason);
             revert("Proof verification failed");
         }

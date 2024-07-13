@@ -11,13 +11,13 @@ const KYCCheck = () => {
   const connectedAddress = primaryWallet?.address as `0x${string}` | undefined;
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
 
   const args: readonly [`0x${string}` | undefined] = [connectedAddress];
 
   const { data: tokenBalance, error } = useScaffoldReadContract({
-    contractName: "WorldcoinVerifier",
+    contractName: "WorldIDVerifiedNFT",
     functionName: "balanceOf",
     args,
   });
