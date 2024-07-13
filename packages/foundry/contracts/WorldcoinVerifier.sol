@@ -50,6 +50,7 @@ contract WorldcoinVerifier {
         uint256 nullifierHash,
         uint256[8] calldata proof
     ) public {
+        require(signal != address(0), "Invalid signal");
         emit Log("Entering verifyAndExecute");
         emit LogAddress("Signal", signal);
         emit LogUint256("Root", root);
