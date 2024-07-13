@@ -17,3 +17,6 @@
 [submodule "lib/LayerZero-v2"]
 	path = lib/LayerZero-v2
 	url = https://github.com/LayerZero-Labs/LayerZero-v2
+[submodule "packages/foundry/lib/LayerZero-v2"]
+	path = packages/foundry/lib/LayerZero-v2
+	url = https://github.com/LayerZero-Labs/LayerZero-v2
