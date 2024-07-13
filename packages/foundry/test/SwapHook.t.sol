@@ -6,6 +6,9 @@ import { IHooks } from "v4-core/src/interfaces/IHooks.sol";
 import { Hooks } from "v4-core/src/libraries/Hooks.sol";
 import { TickMath } from "v4-core/src/libraries/TickMath.sol";
 import { IPoolManager } from "v4-core/src/interfaces/IPoolManager.sol";
+
+import {PoolManager} from "v4-core/src/PoolManager.sol";
+
 import { PoolKey } from "v4-core/src/types/PoolKey.sol";
 import { BalanceDelta } from "v4-core/src/types/BalanceDelta.sol";
 import { PoolId, PoolIdLibrary } from "v4-core/src/types/PoolId.sol";
@@ -22,6 +25,7 @@ contract SwapHookTest is Test, Deployers {
 
   SwapHook hook;
   PoolId poolId;
+  IPoolManager poolManager;
 
   function setUp() public {
     // creates the pool manager, utility routers, and test tokens
@@ -32,7 +36,7 @@ contract SwapHookTest is Test, Deployers {
     address flags = address(
       uint160(
         Hooks.BEFORE_SWAP_FLAG | Hooks.AFTER_SWAP_FLAG
-          | Hooks.BEFORE_ADD_LIQUIDITY_FLAG | Hooks.BEFORE_REMOVE_LIQUIDITY_FLAG
+         | Hooks.AFTER_SWAP_RETURNS_DELTA_FLAG
       ) ^ (0x4444 << 144) // Namespace the hook to avoid collisions
     );
     deployCodeTo("SwapHook.sol:SwapHook", abi.encode(manager), flags);
@@ -54,9 +58,6 @@ contract SwapHookTest is Test, Deployers {
   }
 
   function testCounterHooks() public {
-    // positions were created in setup()
-    assertEq(hook.beforeAddLiquidityCount(poolId), 1);
-    assertEq(hook.beforeRemoveLiquidityCount(poolId), 0);
 
     assertEq(hook.beforeSwapCount(poolId), 0);
     assertEq(hook.afterSwapCount(poolId), 0);
@@ -73,25 +74,15 @@ contract SwapHookTest is Test, Deployers {
     assertEq(hook.afterSwapCount(poolId), 1);
   }
 
-  function testLiquidityHooks() public {
-    // positions were created in setup()
-    assertEq(hook.beforeAddLiquidityCount(poolId), 1);
-    assertEq(hook.beforeRemoveLiquidityCount(poolId), 0);
+  function test_swap() public {
+    // ...
 
-    // remove liquidity
-    int256 liquidityDelta = -1e18;
-    modifyLiquidityRouter.modifyLiquidity(
-      key,
-      IPoolManager.ModifyLiquidityParams(
-        TickMath.minUsableTick(60),
-        TickMath.maxUsableTick(60),
-        liquidityDelta,
-        0
-      ),
-      ZERO_BYTES
-    );
+    // Perform a test swap //
+    bool zeroForOne = true;
+    int256 amountSpecified = -1e18; // negative number indicates exact input swap!
+    BalanceDelta swapDelta = swap(key, zeroForOne, amountSpecified, ZERO_BYTES);
+    // ------------------- //
 
-    assertEq(hook.beforeAddLiquidityCount(poolId), 1);
-    assertEq(hook.beforeRemoveLiquidityCount(poolId), 1);
+    // ...
   }
 }

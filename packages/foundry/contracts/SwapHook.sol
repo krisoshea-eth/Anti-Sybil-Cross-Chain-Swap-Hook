@@ -2,7 +2,6 @@
 pragma solidity ^0.8.24;
 
 import { BaseHook } from "v4-periphery/BaseHook.sol";
-
 import { Hooks } from "v4-core/src/libraries/Hooks.sol";
 import { IPoolManager } from "v4-core/src/interfaces/IPoolManager.sol";
 import { PoolKey } from "v4-core/src/types/PoolKey.sol";
@@ -20,14 +19,14 @@ contract SwapHook is BaseHook {
   // state variables should typically be unique to a pool
   // a single hook contract should be able to service multiple pools
   // ---------------------------------------------------------------
+  IPoolManager poolManager;
 
   mapping(PoolId => uint256 count) public beforeSwapCount;
   mapping(PoolId => uint256 count) public afterSwapCount;
 
-  mapping(PoolId => uint256 count) public beforeAddLiquidityCount;
-  mapping(PoolId => uint256 count) public beforeRemoveLiquidityCount;
-
-  constructor(IPoolManager _poolManager) BaseHook(_poolManager) { }
+  constructor(IPoolManager _poolManager) BaseHook(_poolManager) { 
+    poolManager = _poolManager;
+  }
 
   function getHookPermissions()
     public
@@ -38,16 +37,16 @@ contract SwapHook is BaseHook {
     return Hooks.Permissions({
       beforeInitialize: false,
       afterInitialize: false,
-      beforeAddLiquidity: true,
+      beforeAddLiquidity: false,
       afterAddLiquidity: false,
-      beforeRemoveLiquidity: true,
+      beforeRemoveLiquidity: false,
       afterRemoveLiquidity: false,
       beforeSwap: true,
       afterSwap: true,
       beforeDonate: false,
       afterDonate: false,
       beforeSwapReturnDelta: false,
-      afterSwapReturnDelta: false,
+      afterSwapReturnDelta: true,
       afterAddLiquidityReturnDelta: false,
       afterRemoveLiquidityReturnDelta: false
     });
@@ -64,6 +63,9 @@ contract SwapHook is BaseHook {
     bytes calldata
   ) external override returns (bytes4, BeforeSwapDelta, uint24) {
     beforeSwapCount[key.toId()]++;
+    
+    // check world coin ID permissions
+
     return (BaseHook.beforeSwap.selector, BeforeSwapDeltaLibrary.ZERO_DELTA, 0);
   }
 
@@ -71,30 +73,17 @@ contract SwapHook is BaseHook {
     address,
     PoolKey calldata key,
     IPoolManager.SwapParams calldata,
-    BalanceDelta,
+    BalanceDelta delta,
     bytes calldata
   ) external override returns (bytes4, int128) {
+    
     afterSwapCount[key.toId()]++;
-    return (BaseHook.afterSwap.selector, 0);
-  }
 
-  function beforeAddLiquidity(
-    address,
-    PoolKey calldata key,
-    IPoolManager.ModifyLiquidityParams calldata,
-    bytes calldata
-  ) external override returns (bytes4) {
-    beforeAddLiquidityCount[key.toId()]++;
-    return BaseHook.beforeAddLiquidity.selector;
-  }
+    poolManager.take(key.currency1, address(this), uint128(delta.amount1()));
 
-  function beforeRemoveLiquidity(
-    address,
-    PoolKey calldata key,
-    IPoolManager.ModifyLiquidityParams calldata,
-    bytes calldata
-  ) external override returns (bytes4) {
-    beforeRemoveLiquidityCount[key.toId()]++;
-    return BaseHook.beforeRemoveLiquidity.selector;
+    // oERC20 BURN
+    // oERC20 MINT
+    
+    return (BaseHook.afterSwap.selector, delta.amount1());
   }
 }
