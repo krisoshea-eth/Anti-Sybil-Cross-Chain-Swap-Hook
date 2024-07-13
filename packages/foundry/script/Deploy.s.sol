@@ -25,8 +25,8 @@ contract DeployScript is ScaffoldETHDeploy {
     vm.startBroadcast(deployerPrivateKey);
 
     address worldIdRouterAddress = 0x469449f251692E0779667583026b5A1E99512157; // Replace with actual address
-    string memory appId = "app_staging_190d34fc743cee705b492dc47e97a5aa"; // Replace with your actual app ID
-    string memory actionId = "verify-human"; // Replace with your actual action ID
+    string memory appId = "app_staging_911f3b232bfb4259958b766f6a2baffd"; // Replace with your actual app ID
+    string memory actionId = "verifyswap"; // Replace with your actual action ID
 
     WorldIDVerifiedNFT nft = new WorldIDVerifiedNFT();
     WorldcoinVerifier verifier = new WorldcoinVerifier(
@@ -51,14 +51,14 @@ contract DeployScript is ScaffoldETHDeploy {
     );
 
       // Deploy your SwapHook contract
-      SwapHook swapHook = new SwapHook(IPoolManager(address(0)), nft); // Replace address(0) with your actual PoolManager address
+      // SwapHook swapHook = new SwapHook(IPoolManager(address(0)), nft); // Replace address(0) with your actual PoolManager address
 
-      console.logString(
-          string.concat(
-              "SwapHook deployed at: ",
-              vm.toString(address(swapHook))
-          )
-      );
+      // console.logString(
+      //     string.concat(
+      //         "SwapHook deployed at: ",
+      //         vm.toString(address(swapHook))
+      //     )
+      // );
 
     YourContract yourContract = new YourContract(vm.addr(deployerPrivateKey));
     console.logString(
