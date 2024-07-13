@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./ByteHasher.sol";
 import "./IWorldID.sol";
+import "./WorldIDVerifiedNFT.sol";
 
 contract WorldcoinVerifier {
     using ByteHasher for bytes;
@@ -18,6 +19,7 @@ contract WorldcoinVerifier {
 
     /// @dev The World ID group ID (1 for Orb-verified)
     uint256 internal immutable groupId = 1;
+    WorldIDVerifiedNFT public immutable verifiedNFT;
 
     /// @dev Whether a nullifier hash has been used already. Used to guarantee an action is only performed once by a single person
     mapping(uint256 => bool) internal nullifierHashes;
@@ -28,9 +30,11 @@ contract WorldcoinVerifier {
     constructor(
         IWorldID _worldId,
         string memory _appId,
-        string memory _action
+        string memory _action,
+        WorldIDVerifiedNFT _verifiedNFT
     ) {
         worldId = _worldId;
+        verifiedNFT = _verifiedNFT;
         externalNullifierHash = abi
             .encodePacked(abi.encodePacked(_appId).hashToField(), _action)
             .hashToField();
@@ -84,6 +88,8 @@ contract WorldcoinVerifier {
         nullifierHashes[nullifierHash] = true;
 
         emit Log("Nullifier hash recorded");
+
+        verifiedNFT.mint(signal);
 
         // Finally, execute your logic here, knowing the user is verified
         // Example: mint a token, grant access, etc.
