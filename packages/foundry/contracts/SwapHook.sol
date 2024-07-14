@@ -50,6 +50,9 @@ contract SwapHook is BaseHook, OFT {
     address _owner, IPoolManager _poolManager, WorldIDVerifiedNFT _worldIdNFT) BaseHook(_poolManager) OFT(_name, _symbol, _lzEndpoint, _owner) Ownable(_owner)  {
     poolManager = _poolManager;
     worldIdNFT = _worldIdNFT;
+
+    // Set the delegate
+    OApp(_lzEndpoint).setDelegate(_owner);
 }
 
   function getHookPermissions()
