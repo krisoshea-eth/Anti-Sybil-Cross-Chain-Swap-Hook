@@ -4,9 +4,8 @@ import React, { useCallback, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import KYCCheck from "./KycCheck";
 import { DynamicWidget } from "@dynamic-labs/sdk-react-core";
-import { Bars3Icon, BugAntIcon, WalletIcon } from "@heroicons/react/24/outline";
+import { ArrowsRightLeftIcon, Bars3Icon, BugAntIcon, WalletIcon } from "@heroicons/react/24/outline";
 import { FaucetButton } from "~~/components/scaffold-eth";
 import { useOutsideClick } from "~~/hooks/scaffold-eth";
 
@@ -30,6 +29,11 @@ export const menuLinks: HeaderMenuLink[] = [
     label: "Smart Wallet",
     href: "/safe",
     icon: <WalletIcon className="h-4 w-4" />,
+  },
+  {
+    label: "Swap UI",
+    href: "/swap-ui",
+    icon: <ArrowsRightLeftIcon className="h-4 w-4" />,
   },
 ];
 
@@ -108,8 +112,7 @@ export const Header = () => {
           <HeaderMenuLinks />
         </ul>
       </div>
-      <div className="navbar-end flex-grow mr-4 gap-2">
-        <KYCCheck />
+      <div className="navbar-end flex-grow mr-4">
         <DynamicWidget />
         <FaucetButton />
       </div>
