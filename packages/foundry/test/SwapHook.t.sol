@@ -23,6 +23,36 @@ import { Deployers } from "v4-core/test/utils/Deployers.sol";
 import { SwapHook } from "../contracts/SwapHook.sol";
 import { StateLibrary } from "v4-core/src/libraries/StateLibrary.sol";
 
+// Mock LayerZero Endpoint
+contract MockLZEndpoint {
+  event SendCalled(uint16 _dstChainId, bytes _destination, bytes _payload);
+  event DelegateSet(address _delegate);
+  bool public shouldFail;
+
+  function setShouldFail(bool _shouldFail) external {
+      shouldFail = _shouldFail;
+  }
+
+  function setDelegate(address _delegate) external {
+      emit DelegateSet(_delegate);
+      // You can add any necessary logic here
+  }
+
+  function send(
+      uint16 _dstChainId,
+      bytes calldata _destination,
+      bytes calldata _payload,
+      address payable _refundAddress,
+      address _zroPaymentAddress,
+      bytes calldata _adapterParams
+  ) external payable {
+      if (shouldFail) {
+          revert("LZ send failed");
+      }
+      emit SendCalled(_dstChainId, _destination, _payload);
+  }
+}
+
 contract SwapHookTest is Test, Deployers, IERC721Receiver {
   using PoolIdLibrary for PoolKey;
   using CurrencyLibrary for Currency;
@@ -40,6 +70,8 @@ contract SwapHookTest is Test, Deployers, IERC721Receiver {
       // creates the pool manager, utility routers, and test tokens
       Deployers.deployFreshManagerAndRouters();
       (currency0, currency1) = Deployers.deployMintAndApprove2Currencies();
+
+      MockLZEndpoint mockLzEndpoint = new MockLZEndpoint();
   
       // Deploy WorldcoinVerifier
       nft = new WorldIDVerifiedNFT();
@@ -68,14 +100,35 @@ contract SwapHookTest is Test, Deployers, IERC721Receiver {
      vm.stopPrank();
   
       // Deploy the hook to an address with the correct flags
-      address flags = address(
-          uint160(
-              Hooks.BEFORE_SWAP_FLAG | Hooks.AFTER_SWAP_FLAG
-              | Hooks.AFTER_SWAP_RETURNS_DELTA_FLAG
-          ) ^ (0x4444 << 144) // Namespace the hook to avoid collisions
-      );
-      deployCodeTo("SwapHook.sol:SwapHook", abi.encode(manager, nft), flags);
-      hook = SwapHook(flags);
+      address payable hookAddress = payable(address(
+        uint160(
+            Hooks.BEFORE_SWAP_FLAG | Hooks.AFTER_SWAP_FLAG
+            | Hooks.AFTER_SWAP_RETURNS_DELTA_FLAG
+        ) ^ (0x4444 << 144) // Namespace the hook to avoid collisions
+    ));
+    bytes memory constructorArgs = abi.encode(
+      "SwapHookToken",
+      "SHT",
+      address(mockLzEndpoint),
+      address(this),
+      address(manager),
+      address(nft)
+  );
+
+  vm.deal(address(this), 100 ether);
+
+
+  // Deploy the contract
+  deployCodeTo("SwapHook.sol:SwapHook", constructorArgs, 0, hookAddress);
+
+  // Initialize the SwapHook instance using the calculated address
+  hook = SwapHook(hookAddress);
+
+  // Ensure the hook is properly initialized
+  require(address(hook) != address(0), "Hook deployment failed");
+
+  // Ensure the hook is properly initialized
+  require(address(hook) != address(0), "Hook deployment failed");
   
       // Create the pool
       key = PoolKey(currency0, currency1, 3000, 60, IHooks(hook));
@@ -160,9 +213,6 @@ contract SwapHookTest is Test, Deployers, IERC721Receiver {
 
        // Add your assertions here
        assertEq(int256(swapDelta.amount0()), amountSpecified);
-
-       
-    // Add your assertions here
   }
 
   function testWorldIDVerification() public {
@@ -207,4 +257,76 @@ contract SwapHookTest is Test, Deployers, IERC721Receiver {
   function getFailedHookCallError() internal pure returns (bytes memory) {
       return abi.encodeWithSignature("FailedHookCall()");
   }
+
+  function testCrossChainTransfer() public {
+    nft.mint(user);
+
+    vm.startPrank(user);
+
+    // Generate mock World ID proof data
+    uint256 root = 123;
+    uint256 nullifierHash = 456;
+    uint256[8] memory proof;
+
+    // Create CrossChainTransferData
+    SwapHook.CrossChainTransferData memory transferData = SwapHook.CrossChainTransferData({
+        dstEid: 2,
+        crossChainFee: 0.1 ether
+    });
+
+    // Encode both World ID data and CrossChainTransferData
+    bytes memory hookData = abi.encode(
+        abi.encode(user, root, nullifierHash, proof),
+        abi.encode(transferData)
+    );
+
+    // Perform a test swap with cross-chain transfer
+    bool zeroForOne = true;
+    int256 amountSpecified = -1e18;
+    BalanceDelta swapDelta = swap(key, zeroForOne, amountSpecified, hookData);
+
+    // Check that the swap was successful
+    assertEq(int256(swapDelta.amount0()), amountSpecified);
+
+    // Check that tokens were locked for cross-chain transfer
+    assertEq(hook.lockedTokens(user), uint256(-amountSpecified));
+
+    // Check that CrossChainTransferInitiated event was emitted
+    vm.expectEmit(true, true, true, true);
+    emit SwapHook.CrossChainTransferInitiated(user, uint256(-amountSpecified), 2);
+
+    vm.stopPrank();
+}
+
+function testInsufficientCrossChainFees() public {
+  nft.mint(user);
+
+  vm.startPrank(user);
+
+  // Generate mock World ID proof data
+  uint256 root = 123;
+  uint256 nullifierHash = 456;
+  uint256[8] memory proof;
+
+  // Create CrossChainTransferData with insufficient fees
+  SwapHook.CrossChainTransferData memory transferData = SwapHook.CrossChainTransferData({
+      dstEid: 2,
+      crossChainFee: 0 // No fees provided
+  });
+
+  // Encode both World ID data and CrossChainTransferData
+  bytes memory hookData = abi.encode(
+      abi.encode(user, root, nullifierHash, proof),
+      abi.encode(transferData)
+  );
+
+  // Attempt to perform a swap with insufficient cross-chain fees
+  bool zeroForOne = true;
+  int256 amountSpecified = -1e18;
+  
+  vm.expectRevert("Insufficient cross-chain fees");
+  swap(key, zeroForOne, amountSpecified, hookData);
+
+  vm.stopPrank();
+}
 }
