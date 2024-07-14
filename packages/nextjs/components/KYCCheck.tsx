@@ -13,6 +13,7 @@ const KYCCheck = () => {
   const [isVerified, setIsVerified] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
 
   const args: readonly [`0x${string}` | undefined] = [connectedAddress];
 
@@ -34,7 +35,12 @@ const KYCCheck = () => {
 
   const handleVerificationSuccess = () => {
     setIsVerified(true);
+    setIsVerifying(false);
     setIsPopoverOpen(false);
+  };
+
+  const startVerification = () => {
+    setIsVerifying(true);
   };
 
   return (
@@ -53,10 +59,23 @@ const KYCCheck = () => {
         <span>KYC Status</span>
       </button>
       {isPopoverOpen && (
-        <div className="absolute right-0 mt-2 w-64 p-4 bg-white border shadow-lg rounded-lg">
+        <div className="absolute right-0 mt-2 w-64 p-4 bg-white border shadow-lg rounded-lg text-black">
           <h3 className="text-lg font-semibold mb-2">KYC Verification</h3>
           <p className="mb-4">Current Status: {isLoading ? "Loading..." : isVerified ? "Verified" : "Not Verified"}</p>
-          {!isVerified && !isLoading && !isError && <VerifyOnChain onSuccess={handleVerificationSuccess} />}
+          {!isVerified && !isLoading && !isError && (
+            <div>
+              {!isVerifying ? (
+                <button
+                  onClick={startVerification}
+                  className="w-full py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-300"
+                >
+                  Verify with World ID
+                </button>
+              ) : (
+                <VerifyOnChain onSuccess={handleVerificationSuccess} />
+              )}
+            </div>
+          )}
           {isError && <p className="text-red-500">Error loading KYC status. Please try again.</p>}
         </div>
       )}

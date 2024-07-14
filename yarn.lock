@@ -11696,6 +11696,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lucide-react@npm:^0.408.0":
+  version: 0.408.0
+  resolution: "lucide-react@npm:0.408.0"
+  peerDependencies:
+    react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 80318ea5b49057db3761e5d8909336a14a8c84ebe205ef68c20100013b23aadcdee628b1175c630aec14c20b85320fb502723f6d4a9b46a6a9659451ed5fce48
+  languageName: node
+  linkType: hard
+
 "make-dir@npm:^3.1.0":
   version: 3.1.0
   resolution: "make-dir@npm:3.1.0"
@@ -14620,6 +14629,7 @@ __metadata:
     "@worldcoin/idkit": ^1.2.2
     husky: ^8.0.1
     lint-staged: ^13.0.3
+    lucide-react: ^0.408.0
     prop-types: ^15.8.1
   languageName: unknown
   linkType: soft
