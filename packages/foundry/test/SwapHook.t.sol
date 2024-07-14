@@ -68,14 +68,14 @@ contract SwapHookTest is Test, Deployers, IERC721Receiver {
      vm.stopPrank();
   
       // Deploy the hook to an address with the correct flags
-      address flags = address(
-          uint160(
-              Hooks.BEFORE_SWAP_FLAG | Hooks.AFTER_SWAP_FLAG
-              | Hooks.AFTER_SWAP_RETURNS_DELTA_FLAG
-          ) ^ (0x4444 << 144) // Namespace the hook to avoid collisions
-      );
-      deployCodeTo("SwapHook.sol:SwapHook", abi.encode(manager, nft), flags);
-      hook = SwapHook(flags);
+      address payable flags = payable(address(
+        uint160(
+            Hooks.BEFORE_SWAP_FLAG | Hooks.AFTER_SWAP_FLAG
+            | Hooks.AFTER_SWAP_RETURNS_DELTA_FLAG
+        ) ^ (0x4444 << 144) // Namespace the hook to avoid collisions
+    ));
+    deployCodeTo("SwapHook.sol:SwapHook", abi.encode(manager, nft), flags);
+    hook = SwapHook(flags);
   
       // Create the pool
       key = PoolKey(currency0, currency1, 3000, 60, IHooks(hook));

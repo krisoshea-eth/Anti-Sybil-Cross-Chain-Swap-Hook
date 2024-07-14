@@ -19,9 +19,10 @@ contract SwapHookScript is Script {
   address constant CREATE2_DEPLOYER =
     address(0x4e59b44847b379578588920cA78FbF26c0B4956C);
 
-  //TODO change to sepolia
-  address constant GOERLI_POOLMANAGER =
-    address(0x3A9D48AB9751398BbFa63ad67599Bb04e4BdF98b);
+  address constant SEPOLIA_POOLMANAGER =
+    address(0xFf34e285F8ED393E366046153e3C16484A4dD674);
+
+    address constant LZ_ENDPOINT = address(0x6EDCE65403992e310A62460808c4b910D972f10f); // Add LayerZero endpoint address
 
   function setUp() public { }
 
@@ -42,14 +43,23 @@ contract SwapHookScript is Script {
         CREATE2_DEPLOYER,
         flags,
         type(SwapHook).creationCode,
-        abi.encode(address(GOERLI_POOLMANAGER), address(worldcoinVerifier))
+        abi.encode("SwapHookToken",
+                "SHT",
+                LZ_ENDPOINT,
+                address(this),
+                address(SEPOLIA_POOLMANAGER),
+                address(nft))
     );
 
     // Deploy the hook using CREATE2
     vm.broadcast();
     SwapHook swapHook = new SwapHook{ salt: salt }(
-        IPoolManager(address(GOERLI_POOLMANAGER)),
-        nft
+            "SwapHookToken",
+            "SHT",
+            LZ_ENDPOINT,
+            address(this),
+            IPoolManager(address(SEPOLIA_POOLMANAGER)),
+            nft
     );
     require(
         address(swapHook) == hookAddress, "CounterScript: hook address mismatch"

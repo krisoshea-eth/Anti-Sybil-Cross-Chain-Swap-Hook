@@ -24,6 +24,9 @@ import {HookMiner} from "../test/utils/HookMiner.sol";
 contract CounterScript is Script {
     address constant CREATE2_DEPLOYER = address(0x4e59b44847b379578588920cA78FbF26c0B4956C);
 
+    // SEPOLIA ENDPOINT
+    address constant LZ_ENDPOINT = address(0x6EDCE65403992e310A62460808c4b910D972f10f); 
+
     function setUp() public {}
 
     function run() public {
@@ -32,20 +35,38 @@ contract CounterScript is Script {
         WorldIDVerifiedNFT nft = new WorldIDVerifiedNFT();
 
         // hook contracts must have specific flags encoded in the address
-        uint160 permissions = uint160(
-            Hooks.BEFORE_SWAP_FLAG | Hooks.AFTER_SWAP_FLAG | Hooks.BEFORE_ADD_LIQUIDITY_FLAG
-                | Hooks.BEFORE_REMOVE_LIQUIDITY_FLAG
+        uint160 flags = uint160(
+            Hooks.BEFORE_SWAP_FLAG | Hooks.AFTER_SWAP_FLAG
+            | Hooks.AFTER_SWAP_RETURNS_DELTA_FLAG
         );
 
         // Mine a salt that will produce a hook address with the correct permissions
-        (address hookAddress, bytes32 salt) =
-            HookMiner.find(CREATE2_DEPLOYER, permissions, type(SwapHook).creationCode, abi.encode(address(manager)));
+        (address hookAddress, bytes32 salt) = HookMiner.find(
+            CREATE2_DEPLOYER,
+            flags,
+            type(SwapHook).creationCode,
+            abi.encode(
+                "SwapHookToken",
+                "SHT",
+                LZ_ENDPOINT,
+                address(this),
+                address(manager),
+                address(nft)
+            )
+        );
 
         // ----------------------------- //
         // Deploy the hook using CREATE2 //
         // ----------------------------- //
         vm.broadcast();
-        SwapHook swapHook = new SwapHook{salt: salt}(manager, nft);
+        SwapHook swapHook = new SwapHook{salt: salt}(
+            "SwapHookToken",
+            "SHT",
+            LZ_ENDPOINT,
+            address(this),
+            manager,
+            nft
+        );
         require(address(swapHook) == hookAddress, "CounterScript: hook address mismatch");
 
         // Additional helpers for interacting with the pool
